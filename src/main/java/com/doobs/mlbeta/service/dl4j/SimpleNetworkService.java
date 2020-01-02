@@ -1,5 +1,6 @@
 package com.doobs.mlbeta.service.dl4j;
 
+import com.doobs.mlbeta.model.ModelBuilder;
 import com.doobs.mlbeta.util.FileConverter;
 import com.doobs.mlbeta.util.MlException;
 import org.datavec.api.io.converters.LabelWriterConverter;
@@ -9,6 +10,10 @@ import org.datavec.api.split.FileSplit;
 import org.datavec.api.transform.TransformProcess;
 import org.datavec.api.transform.schema.Schema;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.nn.api.Model;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.evaluation.classification.Evaluation;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -35,6 +40,9 @@ public class SimpleNetworkService {
 
     @Autowired
     FileConverter fileConverter;
+
+    @Autowired
+    ModelBuilder modelBuilder;
 
     public void runPetalExample() throws MlException {
         // dataset variables
@@ -94,6 +102,19 @@ public class SimpleNetworkService {
             normalization.transform(testData);
             this.serviceLog.info("normalized the iris test/train data");
 
+            // get the model
+            MultiLayerNetwork model = this.modelBuilder.buildSoftmaxModel(4, 3);
+
+            // train the model
+            model.fit(trainingData);
+
+            // evaluate the model
+            Evaluation evaluation = new Evaluation(3);
+            INDArray output = model.output(testData.getFeatures());
+            evaluation.eval(testData.getLabels(), output);
+
+            // log
+            this.serviceLog.info(evaluation.stats());
 
         } catch (IOException exception) {
             String message = "Got IO exception: " + exception.getLocalizedMessage();
