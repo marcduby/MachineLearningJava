@@ -103,10 +103,12 @@ public class SimpleNetworkService {
             this.serviceLog.info("normalized the iris test/train data");
 
             // get the model
-            MultiLayerNetwork model = this.modelBuilder.buildSoftmaxModel(4, 3);
+            MultiLayerNetwork model = this.modelBuilder.buildSoftmaxModel(4, 3, 10);
 
             // train the model
-            model.fit(trainingData);
+            for (int i =0; i < 1000; i++) {
+                model.fit(trainingData);
+            }
 
             // evaluate the model
             Evaluation evaluation = new Evaluation(3);
